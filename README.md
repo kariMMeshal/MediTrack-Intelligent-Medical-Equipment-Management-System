@@ -12,7 +12,7 @@ Developed as an AI-assisted biomedical equipment management graduation project b
 - **Zeyad Morsy** — Frontend Development
 - **Ebrahim Yousry** — AI & Machine Learning Development
 - **Abdelrahman Safwat** — Software Architecture & Documentation
-
+- **Mahmoud Malek** — Security Engineering
 
 ---
 
