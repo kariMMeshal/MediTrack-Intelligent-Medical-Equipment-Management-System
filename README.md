@@ -29,6 +29,10 @@ A complete walkthrough of the system features is available here:
 
 https://drive.google.com/file/d/1hYcKQMJiKGY_cxMQa8TjRoZkqXMVsTzj/view?usp=drivesdk
 
+### 📄 Project Documentation  
+The full academic report file is included in the repository:  
+
+`Medical_Equipment_Management_GP_EELU.docx`
 ---
 
 
