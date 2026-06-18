@@ -59,7 +59,7 @@ Final_Project_Compined/
 ### 1. 🔐 Enterprise Backend (`meditrack-backend`)
 - **Core Tech**: Java 21, Spring Boot 3, Spring Security, Spring Data JPA, Hibernate.
 - **Database**: MySQL, with automated schema migrations managed via Flyway.
-- **Security**: JWT Authentication (Access + Refresh tokens with rotation/revocation), per-IP rate-limiting using Bucket4j, secure headers (HSTS, CSP, XSS protection), and password hashing (BCrypt strength 12).
+- **Security**: JWT Authentication with Access and Refresh Tokens (including rotation and revocation), HttpOnly Cookies, per-IP Rate Limiting using Bucket4j, Secure HTTP Headers (HSTS, CSP, XSS Protection, Content Type Options, Frame Protection), and Password Hashing using BCrypt (Strength 12).
 - **AI Security Layer**: Prompts are sanitized with safety guards against prompt injection, jailbreaking, and oversized payload limits before reaching LLM endpoints.
 - **AI Integrations**: Integrated with Groq (Primary) and OpenRouter (Fallback) for chatbot support and automated medical equipment report generation.
 
