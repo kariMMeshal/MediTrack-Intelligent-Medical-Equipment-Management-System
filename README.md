@@ -5,6 +5,26 @@ MediTrack is a production-grade, AI-assisted biomedical equipment management pla
 Developed by **Kareem Hamdy Meshal** as an AI-assisted biomedical equipment management graduation project.
 
 ---
+## 🚀 MediTrack is Live!
+
+The MediTrack system has been successfully deployed and is publicly accessible.
+
+🌐 **Try the application here:**
+
+👉 **https://medicalequ.vercel.app/**
+
+---
+
+
+### Features Available in the Live Version
+
+✅ Equipment Management  
+✅ Maintenance Scheduling  
+✅ Alert Generation  
+✅ AI Risk Assessment  
+✅ JWT Authentication & Authorization  
+✅ Audit Logging  
+✅ Responsive User Interface
 
 ## 🏗️ Project Architecture & Components
 
