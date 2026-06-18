@@ -9,7 +9,7 @@ MediTrack is a production-grade, AI-assisted biomedical equipment management pla
 Developed as an AI-assisted biomedical equipment management graduation project by:
 
 - **Kareem Hamdy Meshal** — Backend Development
-- **Zeyad Morsy** — Frontend Development
+- **Ziad Elsayd** — Frontend Development
 - **Ebrahim Yousry** — AI & Machine Learning Development
 - **Abdelrahman Safwat** — Software Architecture & Documentation
 - **Mahmoud Malek** — Security Engineering
@@ -30,13 +30,16 @@ The MediTrack system has been successfully deployed and is publicly accessible.
 
 ### Features Available in the Live Version
 
-✅ Equipment Management  
-✅ Maintenance Scheduling  
-✅ Alert Generation  
-✅ AI Risk Assessment  
-✅ JWT Authentication & Authorization  
-✅ Audit Logging  
-✅ Responsive User Interface
+✅ Medical Equipment Inventory Management  
+✅ Preventive Maintenance Scheduling  
+✅ Intelligent Alert Generation  
+✅ AI-Powered Risk Assessment  
+✅ AI Maintenance Prediction  
+✅ Medical Engineering Chatbot  
+✅ JWT Authentication & Role-Based Authorization  
+✅ Audit Logging & Activity Tracking  
+✅ Responsive Web User Interface
+
 
 ## 🏗️ Project Architecture & Components
 
