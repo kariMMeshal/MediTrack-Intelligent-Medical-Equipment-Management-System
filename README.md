@@ -21,9 +21,13 @@ Developed as an AI-assisted biomedical equipment management graduation project b
 
 The MediTrack system has been successfully deployed and is publicly accessible.
 
-🌐 **Try the application here:**
+### 🔗 Access the Application
+https://medicalequ.vercel.app/
 
-👉 **https://medicalequ.vercel.app/**
+### 🎥 Watch the Demo
+A complete walkthrough of the system features is available here:
+
+https://drive.google.com/file/d/1hYcKQMJiKGY_cxMQa8TjRoZkqXMVsTzj/view?usp=drivesdk
 
 ---
 
