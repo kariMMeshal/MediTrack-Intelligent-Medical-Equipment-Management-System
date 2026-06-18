@@ -1,0 +1,10 @@
+{
+  "feature_cols":[
+    "Simulated_Temperature_Variance",
+    "Simulated_Motor_Vibration_Hz",
+    "Simulated_Voltage_Drop"
+  ],
+  "window":30,
+  "threshold":0.9897105694,
+  "seed":42
+}

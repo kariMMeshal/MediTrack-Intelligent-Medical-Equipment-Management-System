@@ -1,0 +1,14 @@
+The Absolute Best: LSTM (Long Short-Term Memory Network)
+
+Why it's the best: LSTM is a type of Deep Learning neural network specifically designed for time-series data.
+ Because your data has a "ramping up" effect over 5 to 10 days, an LSTM remembers the sequence. It doesn't just look at today's high vibration; 
+ it notices that the vibration has been steadily increasing since last Tuesday.
+
+
+The Absolute Best: Random Forest
+
+Why it's the best: Random Forest is an ensemble of decision trees. 
+It is brilliant at handling tabular data and ignores "noise" very well. It is also highly explainable.
+ In a healthcare graduation project, your professors will ask why the AI flagged an MRI machine as High Risk. 
+ With a Random Forest, you can pull a "Feature Importance" chart that explicitly proves,
+ "The AI flagged it because the Maintenance Cost per Hour crossed this specific threshold."

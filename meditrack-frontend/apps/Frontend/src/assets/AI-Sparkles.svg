@@ -1,0 +1,5 @@
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z" fill="white" />
+  <path d="M6 6L6.5 7.5L8 8L6.5 8.5L6 10L5.5 8.5L4 8L5.5 7.5L6 6Z" fill="white" opacity="0.6" />
+  <path d="M18 16L18.5 17.5L20 18L18.5 18.5L18 20L17.5 18.5L16 18L17.5 17.5L18 16Z" fill="white" opacity="0.4" />
+</svg>

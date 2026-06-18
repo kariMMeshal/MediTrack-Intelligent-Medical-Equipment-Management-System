@@ -1,0 +1,234 @@
+import os
+import random
+import warnings
+
+import numpy as np
+import pandas as pd
+
+from sklearn.metrics import (
+    classification_report,
+    confusion_matrix,
+    precision_recall_curve,
+    average_precision_score,
+    roc_auc_score,
+)
+from sklearn.preprocessing import StandardScaler
+
+import tensorflow as tf
+from tensorflow.keras import layers, models
+
+warnings.filterwarnings("ignore")
+
+SEED = 42
+np.random.seed(SEED)
+random.seed(SEED)
+tf.random.set_seed(SEED)
+
+print("TensorFlow version:", tf.__version__)
+
+# Load processed time-series dataset
+DATA_PATH = "processed_timeseries_level.csv"
+
+df = pd.read_csv(DATA_PATH)
+print("Raw shape:", df.shape)
+print("Columns:", df.columns.tolist())
+
+df.head()
+
+# Keep only leakage-safe columns for LSTM training
+required_cols = [
+    "Device_ID",
+    "Timestamp",
+    "Simulated_Temperature_Variance",
+    "Simulated_Motor_Vibration_Hz",
+    "Simulated_Voltage_Drop",
+    "Will_Fail_In_72_Hours",
+]
+
+missing = [c for c in required_cols if c not in df.columns]
+if missing:
+    raise ValueError(f"Missing required columns: {missing}")
+
+model_df = df[required_cols].copy()
+model_df["Timestamp"] = pd.to_datetime(model_df["Timestamp"])
+model_df = model_df.sort_values(["Device_ID", "Timestamp"]).reset_index(drop=True)
+
+feature_cols = [
+    "Simulated_Temperature_Variance",
+    "Simulated_Motor_Vibration_Hz",
+    "Simulated_Voltage_Drop",
+]
+target_col = "Will_Fail_In_72_Hours"
+
+print("Model shape:", model_df.shape)
+print("Target distribution:\n", model_df[target_col].value_counts(normalize=True).rename("ratio"))
+
+# Device-aware split to avoid leakage across devices
+unique_devices = model_df["Device_ID"].drop_duplicates().sample(frac=1, random_state=SEED).tolist()
+
+n_devices = len(unique_devices)
+train_end = int(0.70 * n_devices)
+val_end = int(0.85 * n_devices)
+
+train_devices = set(unique_devices[:train_end])
+val_devices = set(unique_devices[train_end:val_end])
+test_devices = set(unique_devices[val_end:])
+
+train_df = model_df[model_df["Device_ID"].isin(train_devices)].copy()
+val_df = model_df[model_df["Device_ID"].isin(val_devices)].copy()
+test_df = model_df[model_df["Device_ID"].isin(test_devices)].copy()
+
+print("Train devices:", len(train_devices), "| rows:", len(train_df))
+print("Val devices:", len(val_devices), "| rows:", len(val_df))
+print("Test devices:", len(test_devices), "| rows:", len(test_df))
+
+for name, part in [("train", train_df), ("val", val_df), ("test", test_df)]:
+    ratio = part[target_col].mean()
+    print(f"{name} positive ratio: {ratio:.4f}")
+
+# Fit scaler on train only, then build sliding windows per device
+WINDOW = 30
+STRIDE = 3
+
+scaler = StandardScaler()
+scaler.fit(train_df[feature_cols])
+
+for part in (train_df, val_df, test_df):
+    part[feature_cols] = scaler.transform(part[feature_cols])
+
+
+def make_sequences(part_df, features, target, window=30, stride=1):
+    X_list, y_list = [], []
+
+    for _, grp in part_df.groupby("Device_ID", sort=False):
+        grp = grp.sort_values("Timestamp")
+        values = grp[features].to_numpy(dtype=np.float32)
+        labels = grp[target].to_numpy(dtype=np.float32)
+
+        if len(grp) < window:
+            continue
+
+        for i in range(0, len(grp) - window + 1, stride):
+            end = i + window
+            X_list.append(values[i:end])
+            y_list.append(labels[end - 1])  # label at the window end
+
+    if not X_list:
+        return np.empty((0, window, len(features)), dtype=np.float32), np.empty((0,), dtype=np.float32)
+
+    return np.array(X_list, dtype=np.float32), np.array(y_list, dtype=np.float32)
+
+
+X_train, y_train = make_sequences(train_df, feature_cols, target_col, window=WINDOW, stride=STRIDE)
+X_val, y_val = make_sequences(val_df, feature_cols, target_col, window=WINDOW, stride=STRIDE)
+X_test, y_test = make_sequences(test_df, feature_cols, target_col, window=WINDOW, stride=STRIDE)
+
+print("X_train:", X_train.shape, "y_train:", y_train.shape)
+print("X_val:", X_val.shape, "y_val:", y_val.shape)
+print("X_test:", X_test.shape, "y_test:", y_test.shape)
+print("Train positives:", y_train.mean())
+
+# Handle class imbalance with class weights
+neg = float((y_train == 0).sum())
+pos = float((y_train == 1).sum())
+
+if pos == 0:
+    raise ValueError("No positive samples in training set. Adjust split/window or regenerate data.")
+
+weight_for_0 = (1.0 / neg) * (neg + pos) / 2.0
+weight_for_1 = (1.0 / pos) * (neg + pos) / 2.0
+class_weight = {0: weight_for_0, 1: weight_for_1}
+
+print("Class weights:", class_weight)
+
+BATCH_SIZE = 512
+
+train_ds = tf.data.Dataset.from_tensor_slices((X_train, y_train)).shuffle(10000, seed=SEED).batch(BATCH_SIZE).prefetch(tf.data.AUTOTUNE)
+val_ds = tf.data.Dataset.from_tensor_slices((X_val, y_val)).batch(BATCH_SIZE).prefetch(tf.data.AUTOTUNE)
+test_ds = tf.data.Dataset.from_tensor_slices((X_test, y_test)).batch(BATCH_SIZE).prefetch(tf.data.AUTOTUNE)
+
+# Build and train LSTM model
+model = models.Sequential([
+    layers.Input(shape=(WINDOW, len(feature_cols))),
+    layers.LSTM(64, return_sequences=True),
+    layers.Dropout(0.2),
+    layers.LSTM(32),
+    layers.Dropout(0.2),
+    layers.Dense(16, activation="relu"),
+    layers.Dense(1, activation="sigmoid"),
+])
+
+model.compile(
+    optimizer=tf.keras.optimizers.Adam(learning_rate=1e-3),
+    loss="binary_crossentropy",
+    metrics=[
+        tf.keras.metrics.AUC(name="auc_roc"),
+        tf.keras.metrics.AUC(name="auc_pr", curve="PR"),
+        tf.keras.metrics.Precision(name="precision"),
+        tf.keras.metrics.Recall(name="recall"),
+    ],
+)
+
+callbacks = [
+    tf.keras.callbacks.EarlyStopping(monitor="val_auc_pr", mode="max", patience=3, restore_best_weights=True),
+    tf.keras.callbacks.ReduceLROnPlateau(monitor="val_auc_pr", mode="max", factor=0.5, patience=1, min_lr=1e-5),
+]
+
+history = model.fit(
+    train_ds,
+    validation_data=val_ds,
+    epochs=8,
+    class_weight=class_weight,
+    callbacks=callbacks,
+    verbose=1,
+)
+
+model.summary()
+
+# Evaluate with threshold tuning on validation PR curve
+val_prob = model.predict(X_val, batch_size=1024, verbose=0).ravel()
+test_prob = model.predict(X_test, batch_size=1024, verbose=0).ravel()
+
+precision, recall, thresholds = precision_recall_curve(y_val, val_prob)
+f1_scores = (2 * precision * recall) / (precision + recall + 1e-9)
+
+# thresholds has length n-1 relative to precision/recall arrays
+if len(thresholds) > 0:
+    best_idx = int(np.nanargmax(f1_scores[:-1]))
+    best_thr = float(thresholds[best_idx])
+else:
+    best_thr = 0.5
+
+print(f"Best threshold from val F1: {best_thr:.4f}")
+
+val_pred = (val_prob >= best_thr).astype(int)
+test_pred = (test_prob >= best_thr).astype(int)
+
+print("\nValidation metrics")
+print("PR-AUC:", average_precision_score(y_val, val_prob))
+print("ROC-AUC:", roc_auc_score(y_val, val_prob))
+print(classification_report(y_val, val_pred, digits=4))
+print("Confusion matrix:\n", confusion_matrix(y_val, val_pred))
+
+print("\nTest metrics")
+print("PR-AUC:", average_precision_score(y_test, test_prob))
+print("ROC-AUC:", roc_auc_score(y_test, test_prob))
+print(classification_report(y_test, test_pred, digits=4))
+print("Confusion matrix:\n", confusion_matrix(y_test, test_pred))
+
+# Save trained model and preprocessing metadata
+os.makedirs("artifacts", exist_ok=True)
+
+model.save("artifacts/lstm_failure_predictor.keras")
+np.save("artifacts/feature_means.npy", scaler.mean_)
+np.save("artifacts/feature_scales.npy", scaler.scale_)
+
+meta = {
+    "feature_cols": feature_cols,
+    "window": WINDOW,
+    "threshold": best_thr,
+    "seed": SEED,
+}
+pd.Series(meta).to_json("artifacts/training_meta.json", indent=2)
+
+print("Saved artifacts to ./artifacts")

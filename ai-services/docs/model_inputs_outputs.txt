@@ -1,0 +1,54 @@
+=========================================================
+AI MEDICAL EQUIPMENT MANAGEMENT - MODELS INPUT & OUTPUT
+=========================================================
+
+This project contains two distinct AI models working together to manage medical equipment. Here is exactly what goes into each model and what comes out.
+
+---------------------------------------------------------
+MODEL 1: Random Forest (General Risk Classifier)
+---------------------------------------------------------
+PURPOSE: Acts as a hospital administrator doing a long-term performance review of a machine.
+
+THE INPUT: 
+The model looks at lifetime tabular statistics and financial data for a device. 
+It requires the following 15 data points:
+  1. Device_Type (e.g., MRI Scanner, Infusion Pump)
+  2. Manufacturer
+  3. Model
+  4. Country (Origin)
+  5. Age (Years in operation)
+  6. Maintenance_Cost (Total dollars spent on maintenance)
+  7. Downtime (Total hours out of service)
+  8. Maintenance_Frequency (How often it gets maintained)
+  9. Failure_Event_Count (Total number of historical failures)
+ 10. Maintenance_Class (Severity/complexity of typical maintenance)
+ 11. Operational_Hours_Est (Total estimated hours it has been running)
+ 12. Expected_Lifespan_Est (Total expected lifespan in years)
+ 13. MTBF (Mean Time Between Failures in hours)
+ 14. Cost_Per_Hour (Calculated maintenance cost per operational hour)
+ 15. Lifespan_Usage_Ratio (Ratio of Age vs Expected Lifespan)
+
+THE OUTPUT: 
+It outputs a long-term risk category:
+  - 0 = Low Risk (Machine is reliable and cost-effective)
+  - 1 = Medium Risk (Machine is showing normal wear and tear)
+  - 2 = High Risk (Machine is a financial or operational liability)
+
+
+---------------------------------------------------------
+MODEL 2: LSTM (72-Hour Imminent Failure Predictor)
+---------------------------------------------------------
+PURPOSE: Acts as a technician watching live monitoring screens to detect imminent breakdowns.
+
+THE INPUT:
+The model looks at a continuous 30-day sliding window of live IoT telemetry. 
+For every device, it expects exactly 30 consecutive days of these 3 sensor readings:
+  1. Simulated_Temperature_Variance (Thermal stability of the device)
+  2. Simulated_Motor_Vibration_Hz (Mechanical stress levels)
+  3. Simulated_Voltage_Drop (Electrical stability and power draw)
+
+THE OUTPUT:
+It outputs a binary prediction regarding the next 72 hours:
+  - 0 = Safe (No failure is predicted in the next 3 days)
+  - 1 = Imminent Failure (The device is predicted to fail within the next 72 hours)
+  - Confidence Score (e.g., 95% confident in failure)
