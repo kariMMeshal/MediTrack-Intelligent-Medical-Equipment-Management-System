@@ -2,9 +2,21 @@
 
 MediTrack is a production-grade, AI-assisted biomedical equipment management platform. It combines a secure **Spring Boot enterprise backend**, a **Python Flask ML API** for predictive maintenance, a **React + Vite + Tailwind CSS frontend dashboard**, and real-time Server-Sent Events (SSE) to monitor, manage, and predict medical device lifecycles and failures.
 
-Developed by **Kareem Hamdy Meshal** as an AI-assisted biomedical equipment management graduation project.
+---
+
+## 👨‍💻 Development Team
+
+Developed as an AI-assisted biomedical equipment management graduation project by:
+
+- **Kareem Hamdy Meshal** — Backend Development
+- **Zeyad Morsy** — Frontend Development
+- **Ebrahim Yousry** — AI & Machine Learning Development
+- **Abdelrahman Safwat** — Software Architecture & Documentation
+
 
 ---
+
+
 ## 🚀 MediTrack is Live!
 
 The MediTrack system has been successfully deployed and is publicly accessible.
